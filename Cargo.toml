@@ -5,6 +5,14 @@ authors = ["rijenkii <5338332+rijenkii@users.noreply.github.com>"]
 license = "MIT OR Apache-2.0"
 edition = "2018"
 
+description = "A library for accessing common user file directories according to `xdg-user-dirs`"
+homepage = "https://github.com/rijenkii/xdg-user-rs"
+documentation = "https://docs.rs/xdg-user"
+repository = "https://github.com/rijenkii/xdg-user-rs"
+readme = "README.md"
+
+keywords = ["xdg", "userdir", "folder", "path", "directory"]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

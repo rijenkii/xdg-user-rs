@@ -11,7 +11,7 @@ documentation = "https://docs.rs/xdg-user"
 repository = "https://github.com/rijenkii/xdg-user-rs"
 readme = "README.md"
 
-keywords = ["linux", "xdg", "userdir", "folder", "path", "directory"]
+keywords = ["xdg", "userdir", "folder", "path", "directory"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

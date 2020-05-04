@@ -162,9 +162,13 @@ impl UserDirs {
                 let caps = RE.captures(&line).unwrap();
 
                 let val = if let Some(m) = caps.get(2) {
-                    Some(home.join(std::str::from_utf8(m.as_bytes()).unwrap()))
+                    Some(home.join(std::str::from_utf8(m.as_bytes()).map_err(|_| Error::Parse)?))
                 } else if let Some(m) = caps.get(3) {
-                    Some(std::str::from_utf8(m.as_bytes()).unwrap().into())
+                    Some(
+                        std::str::from_utf8(m.as_bytes())
+                            .map_err(|_| Error::Parse)?
+                            .into(),
+                    )
                 } else {
                     None
                 };

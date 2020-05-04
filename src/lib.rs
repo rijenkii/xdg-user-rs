@@ -152,11 +152,11 @@ impl UserDirs {
             })
             .unwrap_or_else(|| home.join(".config/user-dirs.dirs"));
 
-        let dirs_file = std::fs::File::open(dirs_file_path).unwrap();
+        let dirs_file = std::fs::File::open(dirs_file_path)?;
         let dirs_file = BufReader::new(dirs_file);
 
         for line in dirs_file.split(b'\n') {
-            let mut line = line.unwrap();
+            let mut line = line?;
             if RE.is_match(&line) {
                 line.retain(|x| x != &b'\\');
                 let caps = RE.captures(&line).unwrap();

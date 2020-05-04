@@ -12,6 +12,7 @@
 //! [1]: https://www.freedesktop.org/wiki/Software/xdg-user-dirs/
 
 use std::path::{Path, PathBuf};
+mod parser;
 
 // almost shamelessly stolen from dirs-sys
 fn home_dir() -> Result<PathBuf, Error> {
@@ -65,14 +66,6 @@ fn home_dir() -> Result<PathBuf, Error> {
     }
 }
 
-lazy_static::lazy_static! {
-    static ref RE: regex::bytes::Regex =
-        regex::bytes::Regex::new(
-            r#"^[ \t]*([^ \t\\]+?)[ \t]*=[ \t]*"(?:\$HOME/|\$HOME/(.+?)|(/.+?))""#
-        )
-        .unwrap();
-}
-
 /// This crates main and only error type
 #[derive(Debug)]
 pub enum Error {
@@ -90,6 +83,12 @@ impl From<std::io::Error> for Error {
     }
 }
 
+impl From<std::str::Utf8Error> for Error {
+    fn from(_: std::str::Utf8Error) -> Self {
+        Self::Parse
+    }
+}
+
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
@@ -103,8 +102,7 @@ impl std::fmt::Display for Error {
 impl std::error::Error for Error {}
 
 /// This crates main and only struct, allows you to access the paths to all the
-/// user directorss
-#[derive(Debug)]
+/// user directories
 pub struct UserDirs {
     desktop: Option<PathBuf>,
     documents: Option<PathBuf>,
@@ -114,6 +112,12 @@ pub struct UserDirs {
     public: Option<PathBuf>,
     templates: Option<PathBuf>,
     videos: Option<PathBuf>,
+}
+
+impl std::fmt::Debug for UserDirs {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.debug_struct("UserDirs").finish()
+    }
 }
 
 impl UserDirs {
@@ -153,27 +157,22 @@ impl UserDirs {
             .unwrap_or_else(|| home.join(".config/user-dirs.dirs"));
 
         let dirs_file = std::fs::File::open(dirs_file_path)?;
-        let dirs_file = BufReader::new(dirs_file);
+        let mut dirs_file = BufReader::new(dirs_file);
 
-        for line in dirs_file.split(b'\n') {
-            let mut line = line?;
-            if RE.is_match(&line) {
-                line.retain(|x| x != &b'\\');
-                let caps = RE.captures(&line).unwrap();
+        let mut line = Vec::new();
+        while dirs_file.read_until(b'\n', &mut line)? != 0 {
+            if let Some((key, val)) = parser::LineParser::new(&mut line).parse() {
+                let val = std::str::from_utf8(val)?;
 
-                let val = if let Some(m) = caps.get(2) {
-                    Some(home.join(std::str::from_utf8(m.as_bytes()).map_err(|_| Error::Parse)?))
-                } else if let Some(m) = caps.get(3) {
-                    Some(
-                        std::str::from_utf8(m.as_bytes())
-                            .map_err(|_| Error::Parse)?
-                            .into(),
-                    )
-                } else {
+                let val = if val == "$HOME/" {
                     None
+                } else if val.starts_with("$HOME/") {
+                    Some(home.join(&val[6..]))
+                } else {
+                    Some(val.into())
                 };
 
-                match caps.get(1).unwrap().as_bytes() {
+                match key {
                     b"XDG_DESKTOP_DIR" => this.desktop = val,
                     b"XDG_DOCUMENTS_DIR" => this.documents = val,
                     b"XDG_DOWNLOAD_DIR" => this.downloads = val,
@@ -185,6 +184,7 @@ impl UserDirs {
                     _ => {}
                 }
             }
+            line.clear();
         }
 
         Ok(this)

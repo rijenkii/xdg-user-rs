@@ -193,48 +193,48 @@ impl UserDirs {
     /// Returns an absolute path to users desktop directory (`XDG_DESKTOP_DIR`),
     /// if found
     pub fn desktop(&self) -> Option<&Path> {
-        self.desktop.as_ref().map(|p| p.as_path())
+        self.desktop.as_deref()
     }
 
     /// Returns an absolute path to users desktop directory (`XDG_DESKTOP_DIR`),
     /// if found
     pub fn documents(&self) -> Option<&Path> {
-        self.documents.as_ref().map(|p| p.as_path())
+        self.documents.as_deref()
     }
 
     /// Returns an absolute path to users downloads directory
     /// (`XDG_DOWNLOAD_DIR`), if found
     pub fn downloads(&self) -> Option<&Path> {
-        self.downloads.as_ref().map(|p| p.as_path())
+        self.downloads.as_deref()
     }
 
     /// Returns an absolute path to users music directory (`XDG_MUSIC_DIR`),
     /// if found
     pub fn music(&self) -> Option<&Path> {
-        self.music.as_ref().map(|p| p.as_path())
+        self.music.as_deref()
     }
 
     /// Returns an absolute path to users pictures directory
     /// (`XDG_PICTURES_DIR`), if found
     pub fn pictures(&self) -> Option<&Path> {
-        self.pictures.as_ref().map(|p| p.as_path())
+        self.pictures.as_deref()
     }
 
     /// Returns an absolute path to users public share directory
     /// (`XDG_PUBLICSHARE_DIR`), if found
     pub fn public(&self) -> Option<&Path> {
-        self.public.as_ref().map(|p| p.as_path())
+        self.public.as_deref()
     }
 
     /// Returns an absolute path to users templates directory
     /// (`XDG_TEMPLATES_DIR`), if found
     pub fn templates(&self) -> Option<&Path> {
-        self.templates.as_ref().map(|p| p.as_path())
+        self.templates.as_deref()
     }
 
     /// Returns an absolute path to users videos directory (`XDG_VIDEOS_DIR`),
     /// if found
     pub fn videos(&self) -> Option<&Path> {
-        self.videos.as_ref().map(|p| p.as_path())
+        self.videos.as_deref()
     }
 }

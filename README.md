@@ -3,7 +3,7 @@
 
 # xdg-user
 
-This simple crate allows you to get paths to "well known" user directories,
+This simple crate allows you to get paths to well known user directories,
 using [`xdg-user-dirs`][1]s `user-dirs.dirs` file.
 
 There are two ways of using this crate - with functions in the root of the

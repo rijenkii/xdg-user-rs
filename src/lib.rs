@@ -1,9 +1,21 @@
+#![cfg(any(unix, target_os = "redox"))]
+
 //! This simple crate allows you to get paths to "well known" user directories,
 //! using [`xdg-user-dirs`][1]s `user-dirs.dirs` file.
+//!
+//! There are two ways of using this crate - with functions in the root of the
+//! crate, or with the [`UserDirs`] struct. [`UserDirs`] will read and parse the
+//! config file only once - when you call the [`UserDirs::new`] function.
+//! Functions in the root will read and parse the config file EVERY TIME you
+//! call them - so use them ONLY if you need to get one or two folders one or
+//! two times.
 //!
 //! # Example
 //!
 //! ```rust
+//! println!("Pictures folder: {:?}", xdg_user::pictures()?);
+//! println!("Music folder:    {:?}", xdg_user::music()?);
+//!
 //! let dirs = xdg_user::UserDirs::new()?;
 //! println!("Documents folder: {:?}", dirs.documents());
 //! println!("Downloads folder: {:?}", dirs.downloads());
@@ -12,59 +24,9 @@
 //! [1]: https://www.freedesktop.org/wiki/Software/xdg-user-dirs/
 
 use std::path::{Path, PathBuf};
+
 mod parser;
-
-// almost shamelessly stolen from dirs-sys
-fn home_dir() -> Result<PathBuf, Error> {
-    return std::env::var_os("HOME")
-        .and_then(|h| if h.is_empty() { None } else { Some(h) })
-        .or_else(|| unsafe { fallback() })
-        .map(PathBuf::from)
-        .ok_or_else(|| Error::NoHome);
-
-    #[cfg(any(
-        target_os = "android",
-        target_os = "ios",
-        target_os = "emscripten",
-        target_os = "redox"
-    ))]
-    unsafe fn fallback() -> Option<std::ffi::OsString> {
-        None
-    }
-    #[cfg(not(any(
-        target_os = "android",
-        target_os = "ios",
-        target_os = "emscripten",
-        target_os = "redox"
-    )))]
-    unsafe fn fallback() -> Option<std::ffi::OsString> {
-        let amt = match libc::sysconf(libc::_SC_GETPW_R_SIZE_MAX) {
-            n if n < 0 => 512 as usize,
-            n => n as usize,
-        };
-        let mut buf = Vec::with_capacity(amt);
-        let mut passwd = std::mem::zeroed();
-        let mut result = std::ptr::null_mut();
-        match libc::getpwuid_r(
-            libc::getuid(),
-            &mut passwd,
-            buf.as_mut_ptr(),
-            buf.capacity(),
-            &mut result,
-        ) {
-            0 if !result.is_null() => {
-                let ptr = passwd.pw_dir as *const _;
-                let bytes = std::ffi::CStr::from_ptr(ptr).to_bytes();
-                if bytes.is_empty() {
-                    None
-                } else {
-                    Some(std::os::unix::ffi::OsStringExt::from_vec(bytes.to_vec()))
-                }
-            }
-            _ => None,
-        }
-    }
-}
+mod utils;
 
 /// This crates main and only error type
 #[derive(Debug)]
@@ -122,15 +84,7 @@ impl std::fmt::Debug for UserDirs {
 
 impl UserDirs {
     /// Attempts to read and parse the `${XDG_COFNIG_HOME}/user-dirs.dirs` file
-    ///
-    /// # Errors
-    ///
-    /// * Home folder was not found
-    /// * Failed to read the `user-dirs.dirs` file
-    /// * Failed to parse the `user-dirs.dirs` file
     pub fn new() -> Result<Self, Error> {
-        use std::io::{BufRead, BufReader};
-
         let mut this = Self {
             desktop: None,
             documents: None,
@@ -142,50 +96,20 @@ impl UserDirs {
             videos: None,
         };
 
-        let home = home_dir()?;
-
-        let dirs_file_path = std::env::var_os("XDG_CONFIG_HOME")
-            .and_then(|e| {
-                let mut path = PathBuf::from(e);
-                if path.is_absolute() {
-                    path.push("user-dirs.dirs");
-                    Some(path)
-                } else {
-                    None
-                }
-            })
-            .unwrap_or_else(|| home.join(".config/user-dirs.dirs"));
-
-        let dirs_file = std::fs::File::open(dirs_file_path)?;
-        let mut dirs_file = BufReader::new(dirs_file);
-
-        let mut line = Vec::new();
-        while dirs_file.read_until(b'\n', &mut line)? != 0 {
-            if let Some((key, val)) = parser::LineParser::new(&mut line).parse() {
-                let val = std::str::from_utf8(val)?;
-
-                let val = if val == "$HOME/" {
-                    None
-                } else if val.starts_with("$HOME/") {
-                    Some(home.join(&val[6..]))
-                } else {
-                    Some(val.into())
-                };
-
-                match key {
-                    b"XDG_DESKTOP_DIR" => this.desktop = val,
-                    b"XDG_DOCUMENTS_DIR" => this.documents = val,
-                    b"XDG_DOWNLOAD_DIR" => this.downloads = val,
-                    b"XDG_MUSIC_DIR" => this.music = val,
-                    b"XDG_PICTURES_DIR" => this.pictures = val,
-                    b"XDG_PUBLICSHARE_DIR" => this.public = val,
-                    b"XDG_TEMPLATES_DIR" => this.templates = val,
-                    b"XDG_VIDEOS_DIR" => this.videos = val,
-                    _ => {}
-                }
+        utils::parse_file(|key, val| {
+            match key {
+                utils::DESKTOP => this.desktop = val,
+                utils::DOCUMENTS => this.documents = val,
+                utils::DOWNLOADS => this.downloads = val,
+                utils::MUSIC => this.music = val,
+                utils::PICTURES => this.pictures = val,
+                utils::PUBLIC => this.public = val,
+                utils::TEMPLATES => this.templates = val,
+                utils::VIDEOS => this.videos = val,
+                _ => {}
             }
-            line.clear();
-        }
+            true
+        })?;
 
         Ok(this)
     }
@@ -196,8 +120,8 @@ impl UserDirs {
         self.desktop.as_deref()
     }
 
-    /// Returns an absolute path to users desktop directory (`XDG_DESKTOP_DIR`),
-    /// if found
+    /// Returns an absolute path to users documents directory
+    /// (`XDG_DOCUMENTS_DIR`), if found
     pub fn documents(&self) -> Option<&Path> {
         self.documents.as_deref()
     }
@@ -237,4 +161,114 @@ impl UserDirs {
     pub fn videos(&self) -> Option<&Path> {
         self.videos.as_deref()
     }
+}
+
+fn read_single(env: &[u8]) -> Result<Option<PathBuf>, Error> {
+    let mut ret = None;
+    utils::parse_file(|key, val| {
+        if key == env {
+            ret = val;
+            false
+        } else {
+            true
+        }
+    })?;
+
+    Ok(ret)
+}
+
+/// Returns an absolute path to users desktop directory (`XDG_DESKTOP_DIR`),  if
+/// found
+///
+/// # Warning
+///
+/// This function will parse the `user-dirs.dirs` file every time it's called,
+/// so if you need paths to multiple different directories - consider using
+/// [`UserDirs`] instead
+pub fn desktop() -> Result<Option<PathBuf>, Error> {
+    read_single(utils::DESKTOP)
+}
+
+/// Returns an absolute path to users documents directory (`XDG_DOCUMENTS_DIR`),
+/// if found
+///
+/// # Warning
+///
+/// This function will parse the `user-dirs.dirs` file every time it's called,
+/// so if you need paths to multiple different directories - consider using
+/// [`UserDirs`] instead
+pub fn documents() -> Result<Option<PathBuf>, Error> {
+    read_single(utils::DOCUMENTS)
+}
+
+/// Returns an absolute path to users downloads directory (`XDG_DOWNLOAD_DIR`),
+/// if found
+///
+/// # Warning
+///
+/// This function will parse the `user-dirs.dirs` file every time it's called,
+/// so if you need paths to multiple different directories - consider using
+/// [`UserDirs`] instead
+pub fn downloads() -> Result<Option<PathBuf>, Error> {
+    read_single(utils::DOWNLOADS)
+}
+
+/// Returns an absolute path to users music directory (`XDG_MUSIC_DIR`),  if
+/// found
+///
+/// # Warning
+///
+/// This function will parse the `user-dirs.dirs` file every time it's called,
+/// so if you need paths to multiple different directories - consider using
+/// [`UserDirs`] instead
+pub fn music() -> Result<Option<PathBuf>, Error> {
+    read_single(utils::MUSIC)
+}
+
+/// Returns an absolute path to users pictures directory (`XDG_PICTURES_DIR`),
+/// if found
+///
+/// # Warning
+///
+/// This function will parse the `user-dirs.dirs` file every time it's called,
+/// so if you need paths to multiple different directories - consider using
+/// [`UserDirs`] instead
+pub fn pictures() -> Result<Option<PathBuf>, Error> {
+    read_single(utils::PICTURES)
+}
+
+/// Returns an absolute path to users public share directory
+/// (`XDG_PUBLICSHARE_DIR`), if found
+///
+/// # Warning
+///
+/// This function will parse the `user-dirs.dirs` file every time it's called,
+/// so if you need paths to multiple different directories - consider using
+/// [`UserDirs`] instead
+pub fn public() -> Result<Option<PathBuf>, Error> {
+    read_single(utils::PUBLIC)
+}
+
+/// Returns an absolute path to users templates directory (`XDG_TEMPLATES_DIR`),
+/// if found
+///
+/// # Warning
+///
+/// This function will parse the `user-dirs.dirs` file every time it's called,
+/// so if you need paths to multiple different directories - consider using
+/// [`UserDirs`] instead
+pub fn templates() -> Result<Option<PathBuf>, Error> {
+    read_single(utils::TEMPLATES)
+}
+
+/// Returns an absolute path to users videos directory (`XDG_VIDEOS_DIR`), if
+/// found
+///
+/// # Warning
+///
+/// This function will parse the `user-dirs.dirs` file every time it's called,
+/// so if you need paths to multiple different directories - consider using
+/// [`UserDirs`] instead
+pub fn videos() -> Result<Option<PathBuf>, Error> {
+    read_single(utils::VIDEOS)
 }

@@ -4,58 +4,6 @@ use std::{
     path::PathBuf,
 };
 
-// almost shamelessly stolen from dirs-sys
-pub fn home_dir() -> Result<PathBuf, Error> {
-    return std::env::var_os("HOME")
-        .and_then(|h| if h.is_empty() { None } else { Some(h) })
-        .or_else(|| unsafe { fallback() })
-        .map(PathBuf::from)
-        .ok_or_else(|| Error::NoHome);
-
-    #[cfg(any(
-        target_os = "android",
-        target_os = "ios",
-        target_os = "emscripten",
-        target_os = "redox"
-    ))]
-    unsafe fn fallback() -> Option<std::ffi::OsString> {
-        None
-    }
-    #[cfg(not(any(
-        target_os = "android",
-        target_os = "ios",
-        target_os = "emscripten",
-        target_os = "redox"
-    )))]
-    unsafe fn fallback() -> Option<std::ffi::OsString> {
-        let amt = match libc::sysconf(libc::_SC_GETPW_R_SIZE_MAX) {
-            n if n < 0 => 512 as usize,
-            n => n as usize,
-        };
-        let mut buf = Vec::with_capacity(amt);
-        let mut passwd = std::mem::zeroed();
-        let mut result = std::ptr::null_mut();
-        match libc::getpwuid_r(
-            libc::getuid(),
-            &mut passwd,
-            buf.as_mut_ptr(),
-            buf.capacity(),
-            &mut result,
-        ) {
-            0 if !result.is_null() => {
-                let ptr = passwd.pw_dir as *const _;
-                let bytes = std::ffi::CStr::from_ptr(ptr).to_bytes();
-                if bytes.is_empty() {
-                    None
-                } else {
-                    Some(std::os::unix::ffi::OsStringExt::from_vec(bytes.to_vec()))
-                }
-            }
-            _ => None,
-        }
-    }
-}
-
 pub const DESKTOP: &'static [u8] = b"XDG_DESKTOP_DIR";
 pub const DOCUMENTS: &'static [u8] = b"XDG_DOCUMENTS_DIR";
 pub const DOWNLOADS: &'static [u8] = b"XDG_DOWNLOAD_DIR";
@@ -66,7 +14,7 @@ pub const TEMPLATES: &'static [u8] = b"XDG_TEMPLATES_DIR";
 pub const VIDEOS: &'static [u8] = b"XDG_VIDEOS_DIR";
 
 pub fn parse_file(mut callback: impl FnMut(&[u8], Option<PathBuf>) -> bool) -> Result<(), Error> {
-    let home = home_dir()?;
+    let home = home::home_dir().ok_or_else(|| crate::Error::NoHome)?;
 
     let dirs_file_path = std::env::var_os("XDG_CONFIG_HOME")
         .and_then(|e| {

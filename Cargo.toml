@@ -17,3 +17,4 @@ keywords = ["xdg", "userdir", "folder", "path", "directory"]
 
 [dependencies]
 libc = "0.2"
+home = "0.5"

@@ -1,3 +1,4 @@
+![Maintenance](https://img.shields.io/maintenance/yes/2020)
 [![crates.io](https://img.shields.io/crates/v/xdg-user)](https://crates.io/crates/xdg-user)
 [![docs.rs](https://docs.rs/xdg-user/badge.svg)](https://docs.rs/xdg-user)
 

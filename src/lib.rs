@@ -189,11 +189,13 @@ fn read_single(env: &[u8]) -> Result<Option<PathBuf>, Error> {
 /// Returns an absolute path to users desktop directory (`XDG_DESKTOP_DIR`), if
 /// found
 ///
-/// # Warning
+/// <div class="warning">
 ///
 /// This function will parse the `user-dirs.dirs` file every time it's called,
 /// so if you need paths to multiple different directories - consider using
 /// [`UserDirs`] instead
+///
+/// </div>
 pub fn desktop() -> Result<Option<PathBuf>, Error> {
     read_single(utils::DESKTOP)
 }
@@ -201,11 +203,13 @@ pub fn desktop() -> Result<Option<PathBuf>, Error> {
 /// Returns an absolute path to users documents directory (`XDG_DOCUMENTS_DIR`),
 /// if found
 ///
-/// # Warning
+/// <div class="warning">
 ///
 /// This function will parse the `user-dirs.dirs` file every time it's called,
 /// so if you need paths to multiple different directories - consider using
 /// [`UserDirs`] instead
+///
+/// </div>
 pub fn documents() -> Result<Option<PathBuf>, Error> {
     read_single(utils::DOCUMENTS)
 }
@@ -213,11 +217,13 @@ pub fn documents() -> Result<Option<PathBuf>, Error> {
 /// Returns an absolute path to users downloads directory (`XDG_DOWNLOAD_DIR`),
 /// if found
 ///
-/// # Warning
+/// <div class="warning">
 ///
 /// This function will parse the `user-dirs.dirs` file every time it's called,
 /// so if you need paths to multiple different directories - consider using
 /// [`UserDirs`] instead
+///
+/// </div>
 pub fn downloads() -> Result<Option<PathBuf>, Error> {
     read_single(utils::DOWNLOADS)
 }
@@ -225,11 +231,13 @@ pub fn downloads() -> Result<Option<PathBuf>, Error> {
 /// Returns an absolute path to users music directory (`XDG_MUSIC_DIR`),  if
 /// found
 ///
-/// # Warning
+/// <div class="warning">
 ///
 /// This function will parse the `user-dirs.dirs` file every time it's called,
 /// so if you need paths to multiple different directories - consider using
 /// [`UserDirs`] instead
+///
+/// </div>
 pub fn music() -> Result<Option<PathBuf>, Error> {
     read_single(utils::MUSIC)
 }
@@ -237,11 +245,13 @@ pub fn music() -> Result<Option<PathBuf>, Error> {
 /// Returns an absolute path to users pictures directory (`XDG_PICTURES_DIR`),
 /// if found
 ///
-/// # Warning
+/// <div class="warning">
 ///
 /// This function will parse the `user-dirs.dirs` file every time it's called,
 /// so if you need paths to multiple different directories - consider using
 /// [`UserDirs`] instead
+///
+/// </div>
 pub fn pictures() -> Result<Option<PathBuf>, Error> {
     read_single(utils::PICTURES)
 }
@@ -249,11 +259,13 @@ pub fn pictures() -> Result<Option<PathBuf>, Error> {
 /// Returns an absolute path to users public share directory
 /// (`XDG_PUBLICSHARE_DIR`), if found
 ///
-/// # Warning
+/// <div class="warning">
 ///
 /// This function will parse the `user-dirs.dirs` file every time it's called,
 /// so if you need paths to multiple different directories - consider using
 /// [`UserDirs`] instead
+///
+/// </div>
 pub fn public() -> Result<Option<PathBuf>, Error> {
     read_single(utils::PUBLIC)
 }
@@ -261,11 +273,13 @@ pub fn public() -> Result<Option<PathBuf>, Error> {
 /// Returns an absolute path to users templates directory (`XDG_TEMPLATES_DIR`),
 /// if found
 ///
-/// # Warning
+/// <div class="warning">
 ///
 /// This function will parse the `user-dirs.dirs` file every time it's called,
 /// so if you need paths to multiple different directories - consider using
 /// [`UserDirs`] instead
+///
+/// </div>
 pub fn templates() -> Result<Option<PathBuf>, Error> {
     read_single(utils::TEMPLATES)
 }
@@ -273,11 +287,13 @@ pub fn templates() -> Result<Option<PathBuf>, Error> {
 /// Returns an absolute path to users videos directory (`XDG_VIDEOS_DIR`), if
 /// found
 ///
-/// # Warning
+/// <div class="warning">
 ///
 /// This function will parse the `user-dirs.dirs` file every time it's called,
 /// so if you need paths to multiple different directories - consider using
 /// [`UserDirs`] instead
+///
+/// </div>
 pub fn videos() -> Result<Option<PathBuf>, Error> {
     read_single(utils::VIDEOS)
 }
@@ -285,11 +301,13 @@ pub fn videos() -> Result<Option<PathBuf>, Error> {
 /// Returns an absolute path to users projects directory (`XDG_PROJECTS_DIR`),
 /// if found
 ///
-/// # Warning
+/// <div class="warning">
 ///
 /// This function will parse the `user-dirs.dirs` file every time it's called,
 /// so if you need paths to multiple different directories - consider using
 /// [`UserDirs`] instead
+///
+/// </div>
 pub fn projects() -> Result<Option<PathBuf>, Error> {
     read_single(utils::PROJECTS)
 }

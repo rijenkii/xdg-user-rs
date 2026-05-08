@@ -11,6 +11,7 @@ fn main() -> Result<(), xdg_user::Error> {
     println!("Public:    {:?}", dirs.public());
     println!("Templates: {:?}", dirs.templates());
     println!("Videos:    {:?}", dirs.videos());
+    println!("Projects:  {:?}", dirs.projects());
 
     Ok(())
 }

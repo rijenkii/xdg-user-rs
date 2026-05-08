@@ -8,6 +8,7 @@ fn main() -> Result<(), xdg_user::Error> {
     println!("Public:    {:?}", xdg_user::public()?);
     println!("Templates: {:?}", xdg_user::templates()?);
     println!("Videos:    {:?}", xdg_user::videos()?);
+    println!("Projects:  {:?}", xdg_user::projects()?);
 
     Ok(())
 }

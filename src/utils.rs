@@ -12,6 +12,7 @@ pub const PICTURES: &'static [u8] = b"XDG_PICTURES_DIR";
 pub const PUBLIC: &'static [u8] = b"XDG_PUBLICSHARE_DIR";
 pub const TEMPLATES: &'static [u8] = b"XDG_TEMPLATES_DIR";
 pub const VIDEOS: &'static [u8] = b"XDG_VIDEOS_DIR";
+pub const PROJECTS: &'static [u8] = b"XDG_PROJECTS_DIR";
 
 pub fn parse_file(mut callback: impl FnMut(&[u8], Option<PathBuf>) -> bool) -> Result<(), Error> {
     let home = home::home_dir().ok_or_else(|| crate::Error::NoHome)?;

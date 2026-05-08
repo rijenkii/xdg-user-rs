@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-08
+### Added
+- Add support for `XDG_PROJECTS_DIR`
+
 ## [0.2.1] - 2020-05-14
 ### Changed
 - Use `home::home_dir` instead of a stolen function
@@ -27,7 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't panic on config file read errors
 - Don't panic if config file is not utf8
 
-[Unreleased]: https://github.com/rijenkii/xdg-user-rs/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/rijenkii/xdg-user-rs/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/rijenkii/xdg-user-rs/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/rijenkii/xdg-user-rs/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/rijenkii/xdg-user-rs/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/rijenkii/xdg-user-rs/compare/v0.1.1...v0.1.2

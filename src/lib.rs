@@ -74,6 +74,7 @@ pub struct UserDirs {
     public: Option<PathBuf>,
     templates: Option<PathBuf>,
     videos: Option<PathBuf>,
+    projects: Option<PathBuf>,
 }
 
 impl std::fmt::Debug for UserDirs {
@@ -94,6 +95,7 @@ impl UserDirs {
             public: None,
             templates: None,
             videos: None,
+            projects: None,
         };
 
         utils::parse_file(|key, val| {
@@ -106,6 +108,7 @@ impl UserDirs {
                 utils::PUBLIC => this.public = val,
                 utils::TEMPLATES => this.templates = val,
                 utils::VIDEOS => this.videos = val,
+                utils::PROJECTS => this.projects = val,
                 _ => {}
             }
             true
@@ -161,6 +164,12 @@ impl UserDirs {
     pub fn videos(&self) -> Option<&Path> {
         self.videos.as_deref()
     }
+
+    /// Returns an absolute path to users projects directory
+    /// (`XDG_PROJECTS_DIR`), if found
+    pub fn projects(&self) -> Option<&Path> {
+        self.projects.as_deref()
+    }
 }
 
 fn read_single(env: &[u8]) -> Result<Option<PathBuf>, Error> {
@@ -177,7 +186,7 @@ fn read_single(env: &[u8]) -> Result<Option<PathBuf>, Error> {
     Ok(ret)
 }
 
-/// Returns an absolute path to users desktop directory (`XDG_DESKTOP_DIR`),  if
+/// Returns an absolute path to users desktop directory (`XDG_DESKTOP_DIR`), if
 /// found
 ///
 /// # Warning
@@ -271,4 +280,16 @@ pub fn templates() -> Result<Option<PathBuf>, Error> {
 /// [`UserDirs`] instead
 pub fn videos() -> Result<Option<PathBuf>, Error> {
     read_single(utils::VIDEOS)
+}
+
+/// Returns an absolute path to users projects directory (`XDG_PROJECTS_DIR`),
+/// if found
+///
+/// # Warning
+///
+/// This function will parse the `user-dirs.dirs` file every time it's called,
+/// so if you need paths to multiple different directories - consider using
+/// [`UserDirs`] instead
+pub fn projects() -> Result<Option<PathBuf>, Error> {
+    read_single(utils::PROJECTS)
 }
